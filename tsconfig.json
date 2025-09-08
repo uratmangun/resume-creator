@@ -41,7 +41,7 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "xmcp-env.d.ts"
-  ],
+, "scripts/test-playwright.js"  ],
   "exclude": [
     "node_modules"
   ]
