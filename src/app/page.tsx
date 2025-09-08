@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-
+import { sdk } from '@farcaster/miniapp-sdk'
 // Mock job data
 const mockJobs = [
   {
@@ -56,6 +56,12 @@ const mockJobs = [
 ];
 
 export default function Home() {
+  useEffect(() => {
+    const initializeSdk = async () => {
+      await sdk.actions.ready();
+    };
+    initializeSdk();
+  }, []);
   const router = useRouter();
   const [formData, setFormData] = useState({
     name: '',
