@@ -1,98 +1,289 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { sdk } from '@farcaster/miniapp-sdk'
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+
+// Mock job data
+const mockJobs = [
+  {
+    id: 1,
+    title: "Senior Frontend Developer",
+    company: "TechCorp Inc.",
+    position: "Full-time",
+    description: "Join our dynamic team to build cutting-edge web applications using React, TypeScript, and modern frontend technologies.",
+    salary: "$95,000 - $120,000"
+  },
+  {
+    id: 2,
+    title: "UI/UX Designer",
+    company: "Design Studio Pro",
+    position: "Full-time",
+    description: "Create beautiful and intuitive user interfaces for web and mobile applications. Experience with Figma and design systems required.",
+    salary: "$70,000 - $90,000"
+  },
+  {
+    id: 3,
+    title: "Backend Engineer",
+    company: "CloudTech Solutions",
+    position: "Remote",
+    description: "Develop and maintain scalable APIs and microservices using Node.js, Python, and cloud technologies.",
+    salary: "$100,000 - $130,000"
+  },
+  {
+    id: 4,
+    title: "Data Analyst",
+    company: "Analytics Plus",
+    position: "Hybrid",
+    description: "Analyze complex datasets to provide actionable insights for business decisions. Proficiency in SQL, Python, and Tableau required.",
+    salary: "$65,000 - $85,000"
+  },
+  {
+    id: 5,
+    title: "Product Manager",
+    company: "InnovateCorp",
+    position: "Full-time",
+    description: "Lead product development from conception to launch. Work closely with engineering and design teams to deliver exceptional user experiences.",
+    salary: "$110,000 - $140,000"
+  },
+  {
+    id: 6,
+    title: "DevOps Engineer",
+    company: "Infrastructure Pro",
+    position: "Remote",
+    description: "Manage CI/CD pipelines, cloud infrastructure, and deployment processes. Experience with AWS, Docker, and Kubernetes preferred.",
+    salary: "$90,000 - $115,000"
+  }
+];
 
 export default function Home() {
-  const [copied, setCopied] = useState<string | null>(null);
+  const router = useRouter();
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    experience: '',
+    education: '',
+    skills: ''
+  });
 
-  useEffect(() => {
-    const initializeSdk = async () => {
-      await sdk.actions.ready();
-    };
-    initializeSdk();
-  }, []);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filteredJobs, setFilteredJobs] = useState(mockJobs);
 
-  const copyToClipboard = async (text: string, id: string) => {
-    await navigator.clipboard.writeText(text);
-    setCopied(id);
-    setTimeout(() => setCopied(null), 2000);
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
   };
 
-  const commands = [
-    {
-      id: 'create',
-      title: '1. Create a new repository from this template',
-      command: 'gh repo create your-new-repo --template uratmangun/nextjs-mcp --public --clone',
-      description: 'Creates a new public repository using this as a template and clones it locally'
-    },
-    {
-      id: 'clone',
-      title: '2. Or clone an existing repository created from this template',
-      command: 'gh repo clone username/your-repo-name',
-      description: 'Clones an existing repository to your local machine'
-    },
-    {
-      id: 'make-public',
-      title: '3. Make an existing repository public (if needed)',
-      command: 'gh repo edit --visibility public',
-      description: 'Changes repository visibility to public (run inside the repo directory)'
+  const generateResume = () => {
+    // Simple resume generation logic
+    const resumeContent = `
+# ${formData.name}
+
+**Email:** ${formData.email}
+
+## Experience
+${formData.experience}
+
+## Education
+${formData.education}
+
+## Skills
+${formData.skills}
+    `;
+    navigator.clipboard.writeText(resumeContent);
+    alert('Resume generated and copied to clipboard!');
+  };
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const term = e.target.value.toLowerCase();
+    setSearchTerm(term);
+    
+    if (term === '') {
+      setFilteredJobs(mockJobs);
+    } else {
+      const filtered = mockJobs.filter(job =>
+        job.title.toLowerCase().includes(term) ||
+        job.company.toLowerCase().includes(term) ||
+        job.description.toLowerCase().includes(term) ||
+        job.position.toLowerCase().includes(term)
+      );
+      setFilteredJobs(filtered);
     }
-  ];
+  };
+
+  const handleJobClick = (jobId: number) => {
+    router.push(`/jobs/${jobId}`);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800 p-8">
       <div className="max-w-4xl mx-auto">
         <header className="text-center mb-12">
           <h1 className="text-4xl font-bold text-slate-800 dark:text-slate-100 mb-4">
-            Next.js MCP Template
+            Resume Creator
           </h1>
           <p className="text-lg text-slate-600 dark:text-slate-300">
-            Use this to create your next Next.js MCP apps
+            Build your professional resume in minutes and submit your resume straight away using browser-use
           </p>
         </header>
 
         <div className="space-y-6">
-          {commands.map((cmd) => (
-            <div
-              key={cmd.id}
-              className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-slate-200 dark:border-slate-700"
-            >
-              <h3 className="text-xl font-semibold text-slate-800 dark:text-slate-100 mb-3">
-                {cmd.title}
-              </h3>
-              <p className="text-slate-600 dark:text-slate-300 mb-4">
-                {cmd.description}
-              </p>
-              <div className="relative">
-                <pre className="bg-slate-900 dark:bg-slate-950 text-green-400 p-4 rounded-lg overflow-x-auto font-mono text-sm">
-                  <code>{cmd.command}</code>
-                </pre>
-                <button
-                  onClick={() => copyToClipboard(cmd.command, cmd.id)}
-                  className="absolute top-2 right-2 bg-slate-700 hover:bg-slate-600 text-white px-3 py-1 rounded text-xs transition-colors"
-                >
-                  {copied === cmd.id ? '✓ Copied!' : 'Copy'}
-                </button>
-              </div>
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-slate-200 dark:border-slate-700">
+            <h2 className="text-xl font-semibold text-slate-800 dark:text-slate-100 mb-4">
+              Personal Information
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <input
+                type="text"
+                name="name"
+                placeholder="Full Name"
+                value={formData.name}
+                onChange={handleChange}
+                className="p-3 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
+              />
+              <input
+                type="email"
+                name="email"
+                placeholder="Email Address"
+                value={formData.email}
+                onChange={handleChange}
+                className="p-3 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
+              />
             </div>
-          ))}
+          </div>
+
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-slate-200 dark:border-slate-700">
+            <h2 className="text-xl font-semibold text-slate-800 dark:text-slate-100 mb-4">
+              Professional Experience
+            </h2>
+            <textarea
+              name="experience"
+              placeholder="Describe your work experience..."
+              value={formData.experience}
+              onChange={handleChange}
+              rows={4}
+              className="w-full p-3 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
+            />
+          </div>
+
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-slate-200 dark:border-slate-700">
+            <h2 className="text-xl font-semibold text-slate-800 dark:text-slate-100 mb-4">
+              Education
+            </h2>
+            <textarea
+              name="education"
+              placeholder="List your education and qualifications..."
+              value={formData.education}
+              onChange={handleChange}
+              rows={3}
+              className="w-full p-3 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
+            />
+          </div>
+
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-slate-200 dark:border-slate-700">
+            <h2 className="text-xl font-semibold text-slate-800 dark:text-slate-100 mb-4">
+              Skills
+            </h2>
+            <textarea
+              name="skills"
+              placeholder="List your key skills and technologies..."
+              value={formData.skills}
+              onChange={handleChange}
+              rows={3}
+              className="w-full p-3 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
+            />
+          </div>
+
+          <div className="text-center">
+            <button
+              onClick={generateResume}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors"
+            >
+              Generate Resume
+            </button>
+          </div>
         </div>
 
-        <div className="mt-12 bg-blue-50 dark:bg-blue-900/20 rounded-xl p-6 border border-blue-200 dark:border-blue-800">
-          <h3 className="text-lg font-semibold text-blue-800 dark:text-blue-200 mb-3">
-            📋 Prerequisites
-          </h3>
-          <ul className="space-y-2 text-blue-700 dark:text-blue-300">
-            <li>• Install GitHub CLI: <code className="bg-blue-100 dark:bg-blue-800 px-2 py-1 rounded">brew install gh</code> or <code className="bg-blue-100 dark:bg-blue-800 px-2 py-1 rounded">winget install GitHub.cli</code></li>
-            <li>• Authenticate: <code className="bg-blue-100 dark:bg-blue-800 px-2 py-1 rounded">gh auth login</code></li>
-            <li>• Replace <code className="bg-blue-100 dark:bg-blue-800 px-2 py-1 rounded">your-new-repo</code> and <code className="bg-blue-100 dark:bg-blue-800 px-2 py-1 rounded">username/your-repo-name</code> with actual names</li>
-          </ul>
+        <div className="mt-12 text-center text-slate-500 dark:text-slate-400">
+          <p>Fill out the form above and click Generate Resume to create your professional resume!</p>
         </div>
 
-        <footer className="text-center mt-12 text-slate-500 dark:text-slate-400">
-          <p>After creating your repository, run <code className="bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">pnpm dev</code> to start development!</p>
-        </footer>
+        {/* Job List Section */}
+        <div className="mt-16">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-slate-800 dark:text-slate-100 mb-4">
+              Job List
+            </h2>
+            <p className="text-lg text-slate-600 dark:text-slate-300">
+              Explore available job opportunities
+            </p>
+          </div>
+
+          {/* Search Input */}
+          <div className="mb-8">
+            <div className="max-w-md mx-auto">
+              <input
+                type="text"
+                placeholder="Search jobs by title, company, or keywords..."
+                value={searchTerm}
+                onChange={handleSearch}
+                className="w-full p-4 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+          </div>
+
+          {/* Job List */}
+          <div className="space-y-6">
+            {filteredJobs.length > 0 ? (
+              filteredJobs.map((job) => (
+                <div
+                  key={job.id}
+                  onClick={() => handleJobClick(job.id)}
+                  className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 border border-slate-200 dark:border-slate-700 hover:shadow-xl transition-shadow cursor-pointer transform hover:scale-[1.02] transition-all duration-200"
+                >
+                  <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+                    <div className="flex-1">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3">
+                        <h3 className="text-xl font-semibold text-slate-800 dark:text-slate-100">
+                          {job.title}
+                        </h3>
+                        <span className="inline-block px-3 py-1 text-sm font-medium text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30 rounded-full mt-2 sm:mt-0">
+                          {job.position}
+                        </span>
+                      </div>
+                      <div className="flex items-center mb-3">
+                        <svg className="w-5 h-5 text-slate-500 dark:text-slate-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                        </svg>
+                        <span className="text-lg font-medium text-slate-700 dark:text-slate-300">
+                          {job.company}
+                        </span>
+                      </div>
+                      <p className="text-slate-600 dark:text-slate-400 mb-4 leading-relaxed">
+                        {job.description}
+                      </p>
+                      <div className="flex items-center">
+                        <svg className="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                        </svg>
+                        <span className="text-lg font-semibold text-green-600 dark:text-green-400">
+                          {job.salary}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-slate-500 dark:text-slate-400 text-lg">
+                  No jobs found matching your search criteria.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
