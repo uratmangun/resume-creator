@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { sdk } from "@farcaster/miniapp-sdk";
+import ResumePreview from "@/components/ResumePreview";
 // Mock job data
 const mockJobs = [
   {
@@ -67,6 +68,9 @@ export default function Home() {
       await sdk.actions.ready();
     };
     initializeSdk();
+    
+    // Auto-load resume from IndexedDB if available
+    loadResumeFromIndexedDBSilently();
   }, []);
   const router = useRouter();
   const [formData, setFormData] = useState({
@@ -153,21 +157,10 @@ export default function Home() {
     });
   };
 
-  const generateResume = () => {
-    // Check if user wants to save first
-    const shouldSave = confirm(
-      "Do you want to save your current resume data before generating? This will ensure the new tab has the most up-to-date information.",
-    );
-
-    if (shouldSave) {
-      saveResumeToIndexedDB();
-      // Wait a moment for the save to complete, then open the new tab
-      setTimeout(() => {
-        window.open("/resume-view", "_blank");
-      }, 500);
-    } else {
-      // Open the resume view tab without saving
-      window.open("/resume-view", "_blank");
+  const scrollToPreview = () => {
+    const previewElement = document.getElementById("resume-preview");
+    if (previewElement) {
+      previewElement.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   };
 
@@ -239,6 +232,55 @@ export default function Home() {
     } catch (error) {
       console.error("Error saving resume:", error);
       alert("Failed to save resume");
+    }
+  };
+
+  const loadResumeFromIndexedDBSilently = async () => {
+    try {
+      const dbName = "ResumeDB";
+      const storeName = "resumes";
+      const version = 1;
+
+      const request = indexedDB.open(dbName, version);
+
+      request.onsuccess = (event: any) => {
+        const db = event.target.result;
+        const transaction = db.transaction([storeName], "readonly");
+        const store = transaction.objectStore(storeName);
+
+        const getRequest = store.get("current-resume");
+
+        getRequest.onsuccess = () => {
+          const result = getRequest.result;
+          if (result) {
+            setFormData({
+              name: result.name || "",
+              githubUrl: result.githubUrl || "",
+              description: result.description || "",
+              experiences: result.experiences || [
+                { company: "", year: "", description: "" },
+              ],
+              projects: result.projects || [
+                { name: "", description: "", demoUrl: "", openSourceUrl: "" },
+              ],
+            });
+            // No alert - silent loading
+          }
+        };
+
+        getRequest.onerror = () => {
+          // Silent error - no alert
+          console.log("No saved resume found or failed to load");
+        };
+      };
+
+      request.onerror = () => {
+        // Silent error - no alert
+        console.log("Failed to open database");
+      };
+    } catch (error) {
+      // Silent error - just log
+      console.log("Error loading resume:", error);
     }
   };
 
@@ -580,10 +622,10 @@ ${projectPreview}
           <div className="text-center">
             <div className="flex flex-col sm:flex-row justify-center gap-4 mb-4">
               <button
-                onClick={generateResume}
+                onClick={scrollToPreview}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors"
               >
-                Generate Resume
+                Preview Resume
               </button>
               <button
                 onClick={generateJsonResume}
@@ -609,18 +651,9 @@ ${projectPreview}
           </div>
         </div>
 
-        <div className="mt-12 text-center text-slate-500 dark:text-slate-400">
-          <p>
-            Fill out the form above and click Generate Resume to create your
-            professional resume!
-          </p>
-        </div>
-
-        <div className="mt-12 text-center text-slate-500 dark:text-slate-400">
-          <p>
-            Fill out the form above and click Generate Resume to create your
-            professional resume!
-          </p>
+        {/* Resume Preview Section */}
+        <div id="resume-preview" className="mt-8">
+          <ResumePreview resumeData={formData} />
         </div>
       </div>
     </div>
