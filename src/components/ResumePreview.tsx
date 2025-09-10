@@ -29,169 +29,20 @@ interface ResumePreviewProps {
 }
 
 export default function ResumePreview({ resumeData, onDownloadPDF }: ResumePreviewProps) {
-  const downloadAsPDF = async () => {
+  const downloadAsPDF = () => {
     if (!resumeData.name && !resumeData.description && !resumeData.experiences.some(exp => exp.company) && !resumeData.projects.some(proj => proj.name)) {
       alert('Please fill in some information before generating PDF');
       return;
     }
 
-    try {
-      // Dynamically import html2pdf
-      const html2pdf = (await import('html2pdf.js')).default;
-      
-      // Get the resume content element
-      const element = document.querySelector('.resume-content');
-      if (!element) {
-        alert('Resume content not found');
-        return;
-      }
-
-      // Create temporary stylesheet to convert oklch colors to hex for PDF generation
-      const tempStyle = document.createElement('style');
-      tempStyle.id = 'pdf-color-fix';
-      tempStyle.textContent = `
-        /* Force all elements to use hex colors only */
-        .resume-content,
-        .resume-content *,
-        .resume-content *::before,
-        .resume-content *::after {
-          /* Override any CSS custom properties that might use oklch */
-          --tw-bg-opacity: 1 !important;
-          --tw-text-opacity: 1 !important;
-          --tw-border-opacity: 1 !important;
-          --tw-ring-opacity: 1 !important;
-          --tw-shadow-color: rgba(0, 0, 0, 0.1) !important;
-          --tw-gradient-from: transparent !important;
-          --tw-gradient-to: transparent !important;
-          --tw-gradient-stops: transparent !important;
-        }
-        
-        /* Specific color overrides for all slate variants */
-        .text-slate-950, .dark .text-slate-50 { color: #020617 !important; }
-        .text-slate-900, .dark .text-slate-100 { color: #0f172a !important; }
-        .text-slate-800, .dark .text-slate-200 { color: #1e293b !important; }
-        .text-slate-700, .dark .text-slate-300 { color: #334155 !important; }
-        .text-slate-600, .dark .text-slate-400 { color: #475569 !important; }
-        .text-slate-500 { color: #64748b !important; }
-        .text-slate-400, .dark .text-slate-600 { color: #94a3b8 !important; }
-        .text-slate-300, .dark .text-slate-700 { color: #cbd5e1 !important; }
-        .text-slate-200, .dark .text-slate-800 { color: #e2e8f0 !important; }
-        .text-slate-100, .dark .text-slate-900 { color: #f1f5f9 !important; }
-        .text-slate-50, .dark .text-slate-950 { color: #f8fafc !important; }
-        
-        /* Background colors */
-        .bg-white { background-color: #ffffff !important; }
-        .bg-slate-50 { background-color: #f8fafc !important; }
-        .bg-slate-100 { background-color: #f1f5f9 !important; }
-        .bg-slate-200 { background-color: #e2e8f0 !important; }
-        .bg-slate-300 { background-color: #cbd5e1 !important; }
-        .bg-slate-400 { background-color: #94a3b8 !important; }
-        .bg-slate-500 { background-color: #64748b !important; }
-        .bg-slate-600 { background-color: #475569 !important; }
-        .bg-slate-700 { background-color: #334155 !important; }
-        .bg-slate-800 { background-color: #1e293b !important; }
-        .bg-slate-900 { background-color: #0f172a !important; }
-        .bg-slate-950 { background-color: #020617 !important; }
-        
-        /* All teal colors */
-        .text-teal-50 { color: #f0fdfa !important; }
-        .text-teal-100 { color: #ccfbf1 !important; }
-        .text-teal-200 { color: #99f6e4 !important; }
-        .text-teal-300 { color: #5eead4 !important; }
-        .text-teal-400 { color: #2dd4bf !important; }
-        .text-teal-500 { color: #14b8a6 !important; }
-        .text-teal-600 { color: #0d9488 !important; }
-        .text-teal-700 { color: #0f766e !important; }
-        .text-teal-800 { color: #115e59 !important; }
-        .text-teal-900 { color: #134e4a !important; }
-        
-        .bg-teal-50 { background-color: #f0fdfa !important; }
-        .bg-teal-100 { background-color: #ccfbf1 !important; }
-        .bg-teal-200 { background-color: #99f6e4 !important; }
-        .bg-teal-300 { background-color: #5eead4 !important; }
-        .bg-teal-400 { background-color: #2dd4bf !important; }
-        .bg-teal-500 { background-color: #14b8a6 !important; }
-        .bg-teal-600 { background-color: #0d9488 !important; }
-        .bg-teal-700 { background-color: #0f766e !important; }
-        .bg-teal-800 { background-color: #115e59 !important; }
-        .bg-teal-900 { background-color: #134e4a !important; }
-        
-        /* Border colors */
-        .border-slate-300 { border-color: #cbd5e1 !important; }
-        .border-slate-600 { border-color: #475569 !important; }
-        .border-teal-400 { border-color: #2dd4bf !important; }
-        .border-teal-600 { border-color: #0d9488 !important; }
-        .border-teal-800 { border-color: #115e59 !important; }
-        
-        /* Blue colors for fallback links */
-        .text-blue-400 { color: #60a5fa !important; }
-        .text-blue-600 { color: #2563eb !important; }
-        .text-green-600 { color: #16a34a !important; }
-        .text-green-700 { color: #15803d !important; }
-        
-        /* Remove all gradients and complex backgrounds */
-        .bg-gradient-to-br,
-        .bg-gradient-to-r,
-        .bg-gradient-to-l,
-        .bg-gradient-to-t,
-        .bg-gradient-to-b,
-        .bg-gradient-to-tr,
-        .bg-gradient-to-tl,
-        .bg-gradient-to-bl {
-          background: #ffffff !important;
-          background-image: none !important;
-        }
-        
-        /* Force simple colors for all elements */
-        .resume-content * {
-          background-image: none !important;
-          box-shadow: none !important;
-          text-shadow: none !important;
-        }
-        
-        /* Ensure SVG icons are properly colored */
-        .resume-content svg {
-          fill: currentColor !important;
-        }
-      `;
-      
-      // Add the temporary style
-      document.head.appendChild(tempStyle);
-
-      const opt = {
-        margin: 1,
-        filename: `${resumeData.name.replace(/\s+/g, '_') || 'Resume'}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { 
-          scale: 2,
-          useCORS: true,
-          allowTaint: true,
-          backgroundColor: '#ffffff'
-        },
-        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-      };
-
-      // Generate PDF and clean up
-      await html2pdf().set(opt).from(element).save();
-      
-      // Remove the temporary style after PDF generation
-      setTimeout(() => {
-        const tempStyleElement = document.getElementById('pdf-color-fix');
-        if (tempStyleElement) {
-          tempStyleElement.remove();
-        }
-      }, 1000);
-      
-    } catch (error) {
-      // Clean up temporary style if it exists
-      const tempStyleElement = document.getElementById('pdf-color-fix');
-      if (tempStyleElement) {
-        tempStyleElement.remove();
-      }
-      
-      // Fallback to window.print if html2pdf is not available
-      console.error('PDF generation failed, falling back to print:', error);
-      window.print();
+    // Store resume data in localStorage for the print page
+    localStorage.setItem('resumeDataForPrint', JSON.stringify(resumeData));
+    
+    // Open print page in new tab
+    const printWindow = window.open('/print-resume', '_blank');
+    
+    if (!printWindow) {
+      alert('Please allow popups to open the print view');
     }
   };
 
