@@ -333,6 +333,69 @@ export default function Home() {
     }
   };
 
+  const createSampleResume = () => {
+    const sampleData = {
+      name: "Alex Thompson",
+      githubUrl: "https://github.com/alexthompson",
+      description: "Full-stack developer with 5+ years of experience building scalable web applications. Passionate about clean code, user experience, and modern technologies. Strong background in React, Node.js, and cloud architecture.",
+      experiences: [
+        {
+          company: "TechCorp Solutions",
+          year: "2022-2024",
+          description: "Senior Frontend Developer responsible for architecting and implementing responsive web applications using React, TypeScript, and Next.js. Led a team of 4 developers and improved application performance by 40% through code optimization and lazy loading strategies."
+        },
+        {
+          company: "StartupXYZ",
+          year: "2020-2022",
+          description: "Full-stack Developer building end-to-end features for a SaaS platform. Developed RESTful APIs using Node.js and Express, integrated third-party services, and implemented automated testing. Contributed to 50% reduction in bug reports through comprehensive testing."
+        },
+        {
+          company: "Digital Agency Pro",
+          year: "2019-2020",
+          description: "Junior Developer creating custom websites and web applications for clients. Gained experience in HTML, CSS, JavaScript, and WordPress development. Collaborated with designers to deliver pixel-perfect implementations."
+        }
+      ],
+      projects: [
+        {
+          name: "E-commerce Platform",
+          description: "Built a modern e-commerce platform using Next.js, TypeScript, and Stripe integration. Features include user authentication, shopping cart, payment processing, and admin dashboard. Implemented responsive design and optimized for SEO.",
+          demoUrl: "https://demo-ecommerce.vercel.app",
+          openSourceUrl: "https://github.com/alexthompson/ecommerce-platform"
+        },
+        {
+          name: "Task Management App",
+          description: "Developed a collaborative task management application with real-time updates using React, Node.js, and Socket.io. Features drag-and-drop functionality, team collaboration, and project analytics dashboard.",
+          demoUrl: "https://taskapp-demo.netlify.app",
+          openSourceUrl: "https://github.com/alexthompson/task-manager"
+        },
+        {
+          name: "Weather Analytics Dashboard",
+          description: "Created a weather analytics dashboard that aggregates data from multiple APIs and displays interactive charts and forecasts. Built with React, D3.js for visualizations, and deployed on AWS using serverless architecture.",
+          demoUrl: "https://weather-dashboard.aws.com",
+          openSourceUrl: "https://github.com/alexthompson/weather-dashboard"
+        }
+      ]
+    };
+
+    setFormData(sampleData);
+    alert("Sample resume loaded! You can now edit the information or preview the resume.");
+  };
+
+  const clearAllInputs = () => {
+    const confirmClear = window.confirm("Are you sure you want to clear all input fields? This action cannot be undone.");
+    
+    if (confirmClear) {
+      setFormData({
+        name: "",
+        githubUrl: "",
+        description: "",
+        experiences: [{ company: "", year: "", description: "" }],
+        projects: [{ name: "", description: "", demoUrl: "", openSourceUrl: "" }],
+      });
+      alert("All input fields have been cleared!");
+    }
+  };
+
   const previewResume = () => {
     const hasExperiences = formData.experiences.some(
       (exp) => exp.company || exp.year || exp.description,
@@ -429,22 +492,6 @@ ${projectPreview}
             Build your professional resume in minutes and submit your resume
             straight away using browser-use
           </p>
-          <div className="mt-6">
-            <nav className="flex justify-center space-x-6">
-              <a
-                href="/"
-                className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium transition-colors"
-              >
-                Create Resume
-              </a>
-              <a
-                href="/jobs"
-                className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium transition-colors"
-              >
-                Browse Jobs
-              </a>
-            </nav>
-          </div>
         </header>
 
         <div className="space-y-6">
@@ -498,14 +545,6 @@ ${projectPreview}
                   key={index}
                   className="border border-slate-200 dark:border-slate-600 rounded-lg p-4 relative"
                 >
-                  {formData.experiences.length > 1 && (
-                    <button
-                      onClick={() => removeExperience(index)}
-                      className="absolute top-2 right-2 text-red-500 hover:text-red-700 text-sm font-medium"
-                    >
-                      Remove
-                    </button>
-                  )}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <input
                       type="text"
@@ -539,6 +578,16 @@ ${projectPreview}
                     rows={3}
                     className="w-full p-3 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
                   />
+                  {formData.experiences.length > 1 && (
+                    <div className="flex justify-end mt-2">
+                      <button
+                        onClick={() => removeExperience(index)}
+                        className="text-red-500 hover:text-red-700 text-sm font-medium px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -562,14 +611,6 @@ ${projectPreview}
                   key={index}
                   className="border border-slate-200 dark:border-slate-600 rounded-lg p-4 relative"
                 >
-                  {formData.projects.length > 1 && (
-                    <button
-                      onClick={() => removeProject(index)}
-                      className="absolute top-2 right-2 text-red-500 hover:text-red-700 text-sm font-medium"
-                    >
-                      Remove
-                    </button>
-                  )}
                   <div className="grid grid-cols-1 gap-4 mb-4">
                     <input
                       type="text"
@@ -614,6 +655,16 @@ ${projectPreview}
                     rows={3}
                     className="w-full p-3 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
                   />
+                  {formData.projects.length > 1 && (
+                    <div className="flex justify-end mt-2">
+                      <button
+                        onClick={() => removeProject(index)}
+                        className="text-red-500 hover:text-red-700 text-sm font-medium px-2 py-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -622,14 +673,20 @@ ${projectPreview}
           <div className="text-center">
             <div className="flex flex-col sm:flex-row justify-center gap-4 mb-4">
               <button
-                onClick={scrollToPreview}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors"
+                onClick={createSampleResume}
+                className="bg-cyan-600 hover:bg-cyan-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors"
               >
-                Preview Resume
+                Create Sample Resume
+              </button>
+              <button
+                onClick={clearAllInputs}
+                className="bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors"
+              >
+                Clear All
               </button>
               <button
                 onClick={generateJsonResume}
-                className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors"
+                className="bg-slate-600 hover:bg-slate-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors"
               >
                 Generate JSON
               </button>
@@ -640,12 +697,6 @@ ${projectPreview}
                 className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors"
               >
                 Save Resume
-              </button>
-              <button
-                onClick={loadResumeFromIndexedDB}
-                className="bg-orange-600 hover:bg-orange-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors"
-              >
-                Load Resume
               </button>
             </div>
           </div>
